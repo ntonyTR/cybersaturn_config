@@ -1,0 +1,167 @@
+name: CyberSaturn
+version: 1.0.0
+schema: v1
+
+models:
+  - name: Qwen2.5 Coder 14B
+    provider: ollama
+    model: qwen2.5-coder:14b
+    apiBase: http://saturn.minotaur-mizar.ts.net:11434
+    contextLength: 16384
+    roles:
+      - chat
+      - edit
+      - apply
+      - autocomplete
+    autocomplete:
+      debounceDelay: 1000
+      maxPromptTokens: 300
+      multilineCompletions: "never"
+
+  - name: Qwen3 14B
+    provider: ollama
+    model: qwen3:14b
+    apiBase: http://saturn.minotaur-mizar.ts.net:11434
+    contextLength: 16384
+    roles:
+      - chat
+      - edit
+      - apply
+
+  - name: Nomic Embed
+    provider: ollama
+    model: nomic-embed-text
+    apiBase: http://saturn.minotaur-mizar.ts.net:11434
+    roles:
+      - embed
+
+context:
+  - provider: code
+  - provider: diff
+  - provider: terminal
+  - provider: codebase
+    params:
+      nRetrievedFiles: 10
+
+prompts:
+  - name: review
+    description: Revisa el código seleccionado en C#
+    prompt: |
+      Revisa el siguiente código en C# y señala:
+      1. Code smells o violaciones de principios SOLID
+      2. Posibles excepciones no manejadas
+      3. Sugerencias concretas de mejora
+
+      No reescribas el código completo, solo señala los puntos.
+
+  - name: docs
+    description: Genera documentación XML para el código seleccionado
+    prompt: |
+      Genera documentación XML completa para el siguiente código C#.
+      Usa el formato estándar de C# con <summary>, <param>, <returns> y <exception> donde aplique.
+      Solo devuelve los comentarios XML, no reescribas el código.
+
+  - name: test
+    description: Genera unit tests para el código seleccionado
+    prompt: |
+      Genera unit tests para el siguiente código C# usando xUnit.
+      Cubre los casos felices, casos límite y posibles excepciones.
+      Usa nombres descriptivos en el formato Metodo_Escenario_ResultadoEsperado.
+      Mockea las dependencias con Moq donde sea necesario.
+
+  - name: endpoint
+    description: Genera un endpoint REST completo en ASP.NET
+    prompt: |
+      Basándote en el código seleccionado, genera un endpoint REST completo en ASP.NET Core que incluya:
+      1. Controller action con atributos de ruta y método HTTP correctos
+      2. Validación del request con Data Annotations o FluentValidation
+      3. Manejo de errores con respuestas HTTP apropiadas (400, 404, 500)
+      4. Documentación XML básica
+      Sigue el estilo del código existente.
+
+  - name: explain
+    description: Explica el código seleccionado en detalle
+    prompt: |
+      Explica el siguiente código de forma clara y concisa:
+      1. Qué hace y cuál es su propósito
+      2. Cómo funciona paso a paso
+      3. Dependencias o efectos secundarios importantes
+      No incluyas sugerencias de mejora a menos que haya algo crítico.
+
+  - name: fix
+    description: Identifica y corrige bugs en el código seleccionado
+    prompt: |
+      Analiza el siguiente código en busca de bugs, incluyendo:
+      1. Errores lógicos
+      2. Null reference potenciales
+      3. Race conditions o problemas de concurrencia en código async
+      4. Manejo incorrecto de excepciones
+      Para cada problema encontrado: señala la línea, explica el bug y propón la corrección.
+
+  - name: migrate
+    description: Genera una migración de Entity Framework para el modelo seleccionado
+    prompt: |
+      Basándote en el modelo de Entity Framework Core seleccionado:
+      1. Identifica qué cambios requeriría una migración
+      2. Genera el código de migración Up() y Down() correspondiente
+      3. Señala si hay datos existentes que podrían verse afectados
+
+  - name: secure
+    description: Revisa el código seleccionado en busca de vulnerabilidades de seguridad
+    prompt: |
+      Revisa el siguiente código en busca de vulnerabilidades de seguridad, enfocándote en:
+      1. Inyección SQL o NoSQL
+      2. Exposición de datos sensibles en responses o logs
+      3. Validación insuficiente de inputs
+      4. Problemas de autorización o autenticación
+      5. OWASP Top 10 relevantes para APIs REST
+      Señala la línea y propón la corrección para cada problema encontrado.
+
+  - name: docmd
+    description: Genera documentación en Markdown del código seleccionado
+    prompt: |
+      Genera documentación técnica en un bloque de texto en formato Markdown para el siguiente código.
+      Incluye: propósito, parámetros, valor de retorno, ejemplos de uso y notas relevantes.
+      Si algo no está claro o es ambiguo, pregunta antes de asumir.
+      No documentes lo que no entiendas — pregunta primero.
+
+  - name: guide
+    description: Guía de dev senior sobre el código o tarea, sin modificar nada
+    prompt: |
+      Actúa como dev senior. No modifiques ni reescribas el código.
+      Tu rol es únicamente orientar:
+      1. Si te muestro código: explica qué hace, qué patrones usa y por qué están bien o mal aplicados
+      2. Si te describo algo que quiero hacer: explica cómo hacerlo siguiendo los patrones del código existente
+      Sé directo. Si hay varias formas, indica cuál recomendarías y por qué.
+      No generes código a menos que sea un ejemplo mínimo ilustrativo.
+
+  - name: vuereview
+    description: Revisa un componente Vue.js/TypeScript
+    prompt: |
+      Revisa el siguiente componente Vue.js con TypeScript y señala:
+      1. Violaciones de las convenciones de Vue 3 Composition API
+      2. Props sin tipado correcto o sin validación
+      3. Reactivity pitfalls (watchers innecesarios, computed mal usados)
+      4. Problemas de performance (re-renders innecesarios, listas sin key)
+      5. Manejo incorrecto de eventos o emits
+      No reescribas el componente, solo señala los puntos con la línea correspondiente.
+
+  - name: reactreview
+    description: Revisa un componente React/TypeScript
+    prompt: |
+      Revisa el siguiente componente React con TypeScript y señala:
+      1. Violaciones de las reglas de hooks
+      2. Props sin tipado correcto o interfaces faltantes
+      3. useEffect con dependencias incorrectas o faltantes
+      4. Re-renders innecesarios (falta de memo, useCallback, useMemo)
+      5. Manejo incorrecto de estado o side effects
+      No reescribas el componente, solo señala los puntos con la línea correspondiente.
+
+  - name: types
+    description: Genera tipos TypeScript para el código seleccionado
+    prompt: |
+      Basándote en el código seleccionado, genera los tipos TypeScript necesarios:
+      1. Interfaces o types para los objetos de datos
+      2. Tipos para props de componentes si aplica
+      3. Tipos para respuestas de API si aplica
+      Usa tipos estrictos — evita any. Si algo es ambiguo, pregunta antes de asumir.
